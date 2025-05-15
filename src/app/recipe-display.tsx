@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Icons } from "@/components/icons"; // Added import for Icons
+import { Icons } from "@/components/icons"; 
 import { useEffect, useState } from "react";
 
 interface Recipe {
@@ -26,13 +26,11 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   const ingredients = recipe.ingredientsList.split('\n').filter(item => item.trim() !== '');
   const instructionsList = recipe.instructions.split('\n').filter(item => item.trim() !== '');
 
-  // Calculate preparation time and ingredient count
-  // Moved random generation to useEffect to avoid hydration mismatch
   const [prepTime, setPrepTime] = useState(0);
   
   useEffect(() => {
-    setPrepTime(Math.floor(Math.random() * 30) + 10); // Random time between 10 to 40 minutes
-  }, [recipe]); // Re-calculate if recipe changes, though unlikely here
+    setPrepTime(Math.floor(Math.random() * 30) + 10); 
+  }, [recipe]); 
 
   const ingredientCount = ingredients.length;
 
@@ -118,7 +116,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
         {recipe.servingSuggestion && (
           <div>
             <h3 className="text-xl font-semibold leading-none text-foreground mb-3 flex items-center">
-              <Icons.utensils className="mr-2 h-5 w-5 text-primary" /> {/* Assuming Utensils icon exists or add it */}
+              <Icons.utensils className="mr-2 h-5 w-5 text-primary" />
               Serving Suggestion:
             </h3>
             <p className="text-sm text-muted-foreground pl-2">{recipe.servingSuggestion}</p>

@@ -5,21 +5,22 @@ import { generateRecipe } from '@/ai/flows/generate-recipe';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast'; // Ensure useToast is imported
+import { useToast } from '@/hooks/use-toast';
 import { RecipeDisplay } from './recipe-display';
 import { useState, useRef, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { gsap } from 'gsap';
 
 export default function Home() {
-  const [ingredients, setIngredients] = useState(''); // This state seems unused, tags is used instead.
+  const [ingredients, setIngredients] = useState('');
   const [recipe, setRecipe] = useState<{ recipeName: string; instructions: string; ingredientsList: string, servingSuggestion?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const cardRef = useRef(null);
   const recipeCardRef = useRef(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState('');
-  const [tags, setTags] = useState<string[]>([]); // Ingredient Tags
+  const [tags, setTags] = useState<string[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (cardRef.current) {
@@ -66,7 +67,7 @@ export default function Home() {
         title: 'Oops! AI Error 🤖',
         description: error.message || 'Failed to generate recipe. Please try again.',
       });
-      setRecipe(null); // Clear previous recipe on error
+      setRecipe(null);
     } finally {
       setIsLoading(false);
       gsap.to(cardRef.current, { opacity: 1, duration: 0.3 });
@@ -101,20 +102,18 @@ export default function Home() {
 
 
   const addTag = (tag: string) => {
-    if (tag.trim() === '') return;
-    const newTag = tag.trim().charAt(0).toUpperCase() + tag.trim().slice(1).toLowerCase();
+    const trimmedTag = tag.trim();
+    if (trimmedTag === '') return;
+    const newTag = trimmedTag.charAt(0).toUpperCase() + trimmedTag.slice(1).toLowerCase();
     if (!tags.includes(newTag) && tags.length < 15) {
       setTags(prevTags => [...prevTags, newTag]);
-    } else if (tags.length >= 15) {
+    } else if (tags.length >= 15 && !tags.includes(newTag)) {
       toast({
         variant: 'destructive',
         title: 'Too many ingredients!',
         description: 'Please keep it to a maximum of 15 ingredients.',
       });
     }
-    // Don't clear inputRef.current.value here as parseIngredientsFromPromptAndAdd will clear the prompt state
-    // which in turn clears the controlled input.
-    // setPrompt(''); // This will be handled by parseIngredientsFromPromptAndAdd
   };
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,18 +123,19 @@ export default function Home() {
   const parseIngredientsFromPromptAndAdd = () => {
     if (prompt.trim() === '') return;
     const newIngredients = prompt
-      .split(/[,、，\s]+and\s+|\s*[,、，]+\s*|\s+/) 
-      .map(item => item.trim())
+      .split(/[,、，\s]+and\s*|\s*[,、，]+\s*|\s+/)
+      .map(item => item.trim()) 
       .filter(item => item !== '');
 
     let addedCount = 0;
+    const currentTagsCount = tags.length;
+
     newIngredients.forEach(ing => {
-      if (ing.trim() === '') return;
-      const newTag = ing.trim().charAt(0).toUpperCase() + ing.trim().slice(1).toLowerCase();
-      if (!tags.includes(newTag) && (tags.length + addedCount) < 15) {
+      const newTag = ing.charAt(0).toUpperCase() + ing.slice(1).toLowerCase();
+      if (!tags.includes(newTag) && (currentTagsCount + addedCount) < 15) {
         setTags(prevTags => [...prevTags, newTag]);
         addedCount++;
-      } else if ((tags.length + addedCount) >= 15 && !tags.includes(newTag)) {
+      } else if ((currentTagsCount + addedCount) >= 15 && !tags.includes(newTag)) {
          toast({
             variant: 'destructive',
             title: 'Too many ingredients!',
@@ -143,7 +143,7 @@ export default function Home() {
           });
       }
     });
-    setPrompt(''); // Clear the prompt after processing
+    setPrompt('');
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -156,13 +156,32 @@ export default function Home() {
 
   const handleSuggestCommonIngredients = () => {
     const common = ['Onion', 'Garlic', 'Salt', 'Pepper', 'Olive Oil'];
-    let currentTags = [...tags]; // Work with a mutable copy
+    let currentTags = [...tags]; 
+    let added = false;
     common.forEach(ingredient => {
       if (!currentTags.includes(ingredient) && currentTags.length < 15) {
         currentTags.push(ingredient);
+        added = true;
       }
     });
-    setTags(currentTags); // Update state once
+    if(added){
+      setTags(currentTags);
+      toast({
+        title: 'Common ingredients added! ✨',
+        description: 'A few staples to get you started.',
+      });
+    } else if (tags.length >= 15 && !common.some(ing => tags.includes(ing))) {
+      toast({
+        variant: 'destructive',
+        title: 'Too many ingredients!',
+        description: 'Cannot add more common ingredients.',
+      });
+    } else {
+       toast({
+        title: 'Already suggested! 👍',
+        description: 'Common ingredients are already in your list or list is full.',
+      });
+    }
   };
 
   const handleVoiceInput = () => {
@@ -211,13 +230,13 @@ export default function Home() {
                  <Button onClick={parseIngredientsFromPromptAndAdd} size="sm" className="bg-primary hover:bg-primary/90">Add</Button>
               </div>
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3 p-2 border rounded-md bg-background">
+                <div className="flex flex-wrap gap-2 mt-3 p-3 border rounded-md bg-background shadow-inner">
                   {tags.map((tag) => (
                     <Button
                       key={tag}
                       variant="secondary"
                       size="sm"
-                      className="rounded-full text-xs h-7 shadow-sm group"
+                      className="rounded-full text-xs h-7 shadow-sm group hover:bg-secondary/70"
                       onClick={() => removeTag(tag)}
                     >
                       {tag} <Icons.close className="ml-1.5 h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
