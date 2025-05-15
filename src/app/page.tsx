@@ -5,14 +5,14 @@ import { generateRecipe } from '@/ai/flows/generate-recipe';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast'; // Ensure useToast is imported
 import { RecipeDisplay } from './recipe-display';
 import { useState, useRef, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { gsap } from 'gsap';
 
 export default function Home() {
-  const [ingredients, setIngredients] = useState('');
+  const [ingredients, setIngredients] = useState(''); // This state seems unused, tags is used instead.
   const [recipe, setRecipe] = useState<{ recipeName: string; instructions: string; ingredientsList: string, servingSuggestion?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const cardRef = useRef(null);
@@ -104,7 +104,7 @@ export default function Home() {
     if (tag.trim() === '') return;
     const newTag = tag.trim().charAt(0).toUpperCase() + tag.trim().slice(1).toLowerCase();
     if (!tags.includes(newTag) && tags.length < 15) {
-      setTags([...tags, newTag]);
+      setTags(prevTags => [...prevTags, newTag]);
     } else if (tags.length >= 15) {
       toast({
         variant: 'destructive',
@@ -112,32 +112,41 @@ export default function Home() {
         description: 'Please keep it to a maximum of 15 ingredients.',
       });
     }
-     if (inputRef.current) {
-      inputRef.current.value = ''; // Clear input after adding
-      inputRef.current.focus();
-    }
-    setPrompt(''); // Clear the prompt state as well
+    // Don't clear inputRef.current.value here as parseIngredientsFromPromptAndAdd will clear the prompt state
+    // which in turn clears the controlled input.
+    // setPrompt(''); // This will be handled by parseIngredientsFromPromptAndAdd
   };
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPrompt(e.target.value);
   };
-
-  const addIngredientFromInput = () => {
-    if (prompt.trim() !== '') {
-      addTag(prompt);
-    }
-  };
   
   const parseIngredientsFromPromptAndAdd = () => {
     if (prompt.trim() === '') return;
     const newIngredients = prompt
-      .split(/[,、，\s]+and\s+|\s*[,、，]+\s*|\s+/) // Split by commas, "and", and spaces
+      .split(/[,、，\s]+and\s+|\s*[,、，]+\s*|\s+/) 
       .map(item => item.trim())
       .filter(item => item !== '');
 
-    newIngredients.forEach(ing => addTag(ing));
+    let addedCount = 0;
+    newIngredients.forEach(ing => {
+      if (ing.trim() === '') return;
+      const newTag = ing.trim().charAt(0).toUpperCase() + ing.trim().slice(1).toLowerCase();
+      if (!tags.includes(newTag) && (tags.length + addedCount) < 15) {
+        setTags(prevTags => [...prevTags, newTag]);
+        addedCount++;
+      } else if ((tags.length + addedCount) >= 15 && !tags.includes(newTag)) {
+         toast({
+            variant: 'destructive',
+            title: 'Too many ingredients!',
+            description: 'Maximum of 15 ingredients reached.',
+          });
+      }
+    });
     setPrompt(''); // Clear the prompt after processing
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
 
@@ -147,11 +156,13 @@ export default function Home() {
 
   const handleSuggestCommonIngredients = () => {
     const common = ['Onion', 'Garlic', 'Salt', 'Pepper', 'Olive Oil'];
+    let currentTags = [...tags]; // Work with a mutable copy
     common.forEach(ingredient => {
-      if (!tags.includes(ingredient) && tags.length < 15) {
-        setTags(prevTags => [...prevTags, ingredient]);
+      if (!currentTags.includes(ingredient) && currentTags.length < 15) {
+        currentTags.push(ingredient);
       }
     });
+    setTags(currentTags); // Update state once
   };
 
   const handleVoiceInput = () => {
@@ -166,10 +177,10 @@ export default function Home() {
       <Card ref={cardRef} className="w-full max-w-2xl bg-card shadow-xl rounded-lg overflow-hidden">
         <CardHeader className="p-6 flex flex-col space-y-2 items-center border-b">
           <CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
-            🥬 FridgeChef AI
+            🥬 Simple Recipe Maker
           </CardTitle>
           <CardDescription className="text-sm text-muted-foreground text-center">
-            What’s in your fridge today? 🧊 Let AI be your sous-chef!
+            What’s in your fridge today? 🧊
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -177,13 +188,13 @@ export default function Home() {
             <div className="grid gap-2">
               <label htmlFor="ingredients-prompt" className="text-sm font-medium leading-none text-foreground flex items-center">
                 <Icons.search className="mr-2 h-4 w-4 text-primary" />
-                Add ingredients (e.g., "eggs, tomato and cheese" or "chicken")
+                Type ingredients (e.g., "eggs, tomato and cheese" or "chicken")
               </label>
               <div className="flex items-center space-x-2">
                 <Input
                   ref={inputRef}
                   id="ingredients-prompt"
-                  placeholder="Type here or use suggestions..."
+                  placeholder="Add ingredients..."
                   value={prompt}
                   onChange={handlePromptChange}
                   onKeyDown={(e) => {
@@ -192,13 +203,12 @@ export default function Home() {
                       parseIngredientsFromPromptAndAdd();
                     }
                   }}
-                  onBlur={parseIngredientsFromPromptAndAdd} // Also parse on blur
                   className="text-sm rounded-md shadow-sm flex-grow"
                 />
                 <Button variant="outline" size="icon" onClick={handleVoiceInput} aria-label="Use voice input">
                   <Icons.mic className="h-4 w-4" />
                 </Button>
-                 <Button onClick={addIngredientFromInput} size="sm" className="bg-primary hover:bg-primary/90">Add</Button>
+                 <Button onClick={parseIngredientsFromPromptAndAdd} size="sm" className="bg-primary hover:bg-primary/90">Add</Button>
               </div>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3 p-2 border rounded-md bg-background">
@@ -218,7 +228,7 @@ export default function Home() {
             </div>
 
             <div>
-              <p className="text-xs font-medium leading-none text-foreground mb-1.5">💡 Quick Add:</p>
+              <p className="text-xs font-medium leading-none text-foreground mb-1.5">🧺 Suggested Ingredients:</p>
               <div className="flex flex-wrap gap-2">
                 {suggestedIngredients.map((ingredient) => (
                   <Button
@@ -234,7 +244,7 @@ export default function Home() {
               </div>
             </div>
              <div>
-              <p className="text-xs font-medium leading-none text-foreground mb-1.5">📦 Pantry Staples:</p>
+              <p className="text-xs font-medium leading-none text-foreground mb-1.5">📦 Pantry Items:</p>
               <div className="flex flex-wrap gap-2">
                 {pantryStaples.map((ingredient) => (
                   <Button
@@ -268,7 +278,7 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                 <Icons.workflow className="mr-2 h-5 w-5" /> Generate AI Recipe 🪄
+                 <Icons.workflow className="mr-2 h-5 w-5" /> Generate Recipe 🪄
                 </>
               )}
             </Button>
