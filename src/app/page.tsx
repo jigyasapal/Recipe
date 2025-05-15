@@ -9,7 +9,6 @@ import { toast } from '@/hooks/use-toast';
 import { RecipeDisplay } from './recipe-display';
 import { useState, useRef, useEffect } from 'react';
 import { Icons } from '@/components/icons';
-import Image from 'next/image';
 import { gsap } from 'gsap';
 
 export default function Home() {
@@ -166,15 +165,6 @@ export default function Home() {
     <div className="flex flex-col items-center justify-start min-h-screen bg-secondary py-8 px-4 sm:px-6 lg:px-8">
       <Card ref={cardRef} className="w-full max-w-2xl bg-card shadow-xl rounded-lg overflow-hidden">
         <CardHeader className="p-6 flex flex-col space-y-2 items-center border-b">
-            <Image
-              src="https://placehold.co/100x100.png"
-              alt="App Logo"
-              data-ai-hint="app logo"
-              width={100}
-              height={100}
-              className="rounded-full shadow-md mb-3"
-              priority
-            />
           <CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
             🥬 FridgeChef AI
           </CardTitle>
