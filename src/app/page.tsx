@@ -167,12 +167,12 @@ export default function Home() {
       <Card ref={cardRef} className="w-full max-w-2xl bg-card shadow-xl rounded-lg overflow-hidden">
         <CardHeader className="p-6 flex flex-col space-y-2 items-center border-b">
             <Image
-              src="https://placehold.co/180x90.png"
-              alt="App Mascot Illustration"
-              data-ai-hint="cartoon person"
-              width={180}
-              height={90}
-              className="rounded-md shadow-md mb-3"
+              src="https://placehold.co/100x100.png"
+              alt="App Logo"
+              data-ai-hint="app logo"
+              width={100}
+              height={100}
+              className="rounded-full shadow-md mb-3"
               priority
             />
           <CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
