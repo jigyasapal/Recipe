@@ -168,8 +168,8 @@ export default function Home() {
         <CardHeader className="p-6 flex flex-col space-y-2 items-center border-b">
             <Image
               src="https://placehold.co/180x90.png"
-              alt="Delicious Food Illustration"
-              data-ai-hint="food illustration"
+              alt="App Mascot Illustration"
+              data-ai-hint="cartoon person"
               width={180}
               height={90}
               className="rounded-md shadow-md mb-3"
