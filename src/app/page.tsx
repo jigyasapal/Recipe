@@ -167,9 +167,9 @@ export default function Home() {
       <Card ref={cardRef} className="w-full max-w-2xl bg-card shadow-xl rounded-lg overflow-hidden">
         <CardHeader className="p-6 flex flex-col space-y-2 items-center border-b">
             <Image
-              src="https://placehold.co/200x100.png"
+              src="https://placehold.co/180x90.png"
               alt="Delicious Food Illustration"
-              data-ai-hint="food cooking illustration"
+              data-ai-hint="food illustration"
               width={180}
               height={90}
               className="rounded-md shadow-md mb-3"
