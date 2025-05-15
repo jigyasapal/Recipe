@@ -1,10 +1,13 @@
-import {ArrowRight, Check, ChevronsUpDown, Circle, Copy, Edit, ExternalLink, File, HelpCircle, Home, Loader2, Mail, MessageSquare, Moon, Plus, PlusCircle, Search, Server, Settings, Share2, Shield, Sun, Trash, User, X, Workflow} from 'lucide-react';
+
+import {ArrowRight, Check, ChevronsUpDown, Circle, Copy, Edit, ExternalLink, File, HelpCircle, Home, Loader2, Mail, MessageSquare, Moon, Plus, PlusCircle, Search, Server, Settings, Share2, Shield, Sun, Trash, User, X, Workflow, Bookmark, Shuffle, Clock, ListFilter, Mic} from 'lucide-react';
 
 const Icons = {
   arrowRight: ArrowRight,
+  bookmark: Bookmark,
   check: Check,
   chevronDown: ChevronsUpDown,
   circle: Circle,
+  clock: Clock,
   workflow: Workflow,
   close: X,
   copy: Copy,
@@ -15,8 +18,10 @@ const Icons = {
   help: HelpCircle,
   home: Home,
   light: Sun,
+  listFilter: ListFilter,
   loader: Loader2,
   mail: Mail,
+  mic: Mic,
   messageSquare: MessageSquare,
   plus: Plus,
   plusCircle: PlusCircle,
@@ -25,6 +30,7 @@ const Icons = {
   settings: Settings,
   share: Share2,
   shield: Shield,
+  shuffle: Shuffle,
   spinner: Loader2,
   trash: Trash,
   user: User,
